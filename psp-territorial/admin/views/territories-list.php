@@ -14,11 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 $msg = isset( $_GET['msg'] ) ? sanitize_text_field( wp_unslash( $_GET['msg'] ) ) : '';
 
 // Build query args.
-$current_type   = isset( $_GET['type'] ) ? sanitize_text_field( wp_unslash( $_GET['type'] ) ) : '';
-$search         = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-$paged          = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
-$per_page       = 50;
-$offset         = ( $paged - 1 ) * $per_page;
+$current_type     = isset( $_GET['type'] ) ? sanitize_text_field( wp_unslash( $_GET['type'] ) ) : '';
+$search           = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$parent_id_filter = isset( $_GET['parent_id'] ) ? absint( $_GET['parent_id'] ) : 0;
+$paged            = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
+$per_page         = 50;
+$offset           = ( $paged - 1 ) * $per_page;
 
 global $psp_territorial;
 $db = psp_territorial()->database;
@@ -30,6 +31,9 @@ $query_args = array(
 );
 if ( ! empty( $current_type ) && PSP_Territorial_Utils::is_valid_type( $current_type ) ) {
 	$query_args['type'] = $current_type;
+}
+if ( $parent_id_filter > 0 ) {
+	$query_args['parent_id'] = $parent_id_filter;
 }
 
 $territories = $db->get_territories( $query_args );
@@ -86,11 +90,31 @@ foreach ( PSP_Territorial_Utils::$types as $t ) {
 		</div>
 	</div>
 
+	<?php
+	// Show context info when filtering by a parent territory.
+	$parent_filter_entity = $parent_id_filter > 0 ? $db->get_by_id( $parent_id_filter ) : null;
+	if ( $parent_filter_entity ) :
+		$clear_url = remove_query_arg( 'parent_id' );
+	?>
+	<div class="notice notice-info inline">
+		<p>
+			<?php esc_html_e( 'Mostrando hijos de:', 'psp-territorial' ); ?>
+			<strong><?php echo esc_html( PSP_Territorial_Utils::get_type_label( $parent_filter_entity->type ) ); ?></strong>
+			–
+			<strong><?php echo esc_html( $parent_filter_entity->name ); ?></strong>
+			&nbsp;<a href="<?php echo esc_url( $clear_url ); ?>"><?php esc_html_e( '✕ Quitar filtro de padre', 'psp-territorial' ); ?></a>
+		</p>
+	</div>
+	<?php endif; ?>
+
 	<!-- Search form -->
 	<form method="get" class="psp-search-form">
 		<input type="hidden" name="page" value="psp-territorial">
 		<?php if ( $current_type ) : ?>
 			<input type="hidden" name="type" value="<?php echo esc_attr( $current_type ); ?>">
+		<?php endif; ?>
+		<?php if ( $parent_id_filter > 0 ) : ?>
+			<input type="hidden" name="parent_id" value="<?php echo esc_attr( $parent_id_filter ); ?>">
 		<?php endif; ?>
 		<p class="search-box">
 			<label for="psp-search-input" class="screen-reader-text"><?php esc_html_e( 'Buscar territorios', 'psp-territorial' ); ?></label>
@@ -177,14 +201,34 @@ foreach ( PSP_Territorial_Utils::$types as $t ) {
 					<td><?php echo esc_html( $territory->code ); ?></td>
 					<td>
 						<?php if ( $parent ) : ?>
+							<span class="psp-type-badge psp-type-<?php echo esc_attr( $parent->type ); ?>">
+								<?php echo esc_html( PSP_Territorial_Utils::get_type_label( $parent->type ) ); ?>
+							</span>
 							<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'psp-territorial', 'action' => 'edit', 'id' => $parent->id ), admin_url( 'admin.php' ) ) ); ?>">
 								<?php echo esc_html( $parent->name ); ?>
 							</a>
+							<?php
+							// Warn if the parent type is not what is expected for this territory type.
+							$expected_parent_type = PSP_Territorial_Utils::get_parent_type( $territory->type );
+							if ( $expected_parent_type && $parent->type !== $expected_parent_type ) :
+							?>
+							<br><span class="psp-status-inactive" title="<?php echo esc_attr( sprintf( __( 'Se esperaba un %s como padre', 'psp-territorial' ), PSP_Territorial_Utils::get_type_label( $expected_parent_type ) ) ); ?>">
+								⚠️ <?php esc_html_e( 'Padre incorrecto', 'psp-territorial' ); ?>
+							</span>
+							<?php endif; ?>
 						<?php else : ?>
 							—
 						<?php endif; ?>
 					</td>
-					<td><?php echo esc_html( $children_count ); ?></td>
+					<td>
+						<?php if ( $children_count > 0 ) : ?>
+							<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'psp-territorial', 'parent_id' => $territory->id ), admin_url( 'admin.php' ) ) ); ?>">
+								<?php echo esc_html( number_format_i18n( $children_count ) ); ?>
+							</a>
+						<?php else : ?>
+							<?php echo esc_html( $children_count ); ?>
+						<?php endif; ?>
+					</td>
 					<td>
 						<?php if ( $territory->is_active ) : ?>
 							<span class="psp-status-active">✅ <?php esc_html_e( 'Activo', 'psp-territorial' ); ?></span>
