@@ -73,10 +73,15 @@ class PSP_Territorial_Plugin {
 		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-utils.php';
 		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-query.php';
 		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-importer.php';
+		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-importer-v2.php';
 		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-api.php';
 
 		if ( is_admin() ) {
 			require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-admin.php';
+		}
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-cli.php';
 		}
 	}
 
