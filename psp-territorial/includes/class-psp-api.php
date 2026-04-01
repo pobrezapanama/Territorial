@@ -130,15 +130,19 @@ class PSP_Territorial_Api {
 				'callback'            => array( $this, 'search' ),
 				'permission_callback' => '__return_true',
 				'args'                => array(
-					'q'    => array(
+					'q'         => array(
 						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'type' => array(
+					'type'      => array(
 						'sanitize_callback' => 'sanitize_text_field',
 						'default'           => '',
 					),
-					'limit' => array(
+					'parent_id' => array(
+						'sanitize_callback' => 'absint',
+						'default'           => 0,
+					),
+					'limit'     => array(
 						'sanitize_callback' => 'absint',
 						'default'           => 20,
 					),
@@ -318,9 +322,10 @@ class PSP_Territorial_Api {
 	 * @return WP_REST_Response
 	 */
 	public function search( WP_REST_Request $request ) {
-		$q     = $request->get_param( 'q' );
-		$type  = $request->get_param( 'type' );
-		$limit = min( absint( $request->get_param( 'limit' ) ), 100 );
+		$q         = $request->get_param( 'q' );
+		$type      = $request->get_param( 'type' );
+		$parent_id = absint( $request->get_param( 'parent_id' ) );
+		$limit     = min( absint( $request->get_param( 'limit' ) ), 100 );
 
 		$args = array(
 			'search' => $q,
@@ -329,6 +334,10 @@ class PSP_Territorial_Api {
 
 		if ( ! empty( $type ) && PSP_Territorial_Utils::is_valid_type( $type ) ) {
 			$args['type'] = $type;
+		}
+
+		if ( $parent_id > 0 ) {
+			$args['parent_id'] = $parent_id;
 		}
 
 		$territories = $this->db->get_territories( $args );
