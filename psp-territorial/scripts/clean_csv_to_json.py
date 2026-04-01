@@ -51,8 +51,20 @@ def generate_code(entity_type: str, index: int) -> str:
         "corregimiento": "COR",
         "community": "COM",
     }
+    # Each type uses a fixed width that accommodates Panama's full dataset:
+    #   province      → 2 digits  (max  13)  e.g. PRV-01
+    #   district      → 3 digits  (max  82)  e.g. DIS-001
+    #   corregimiento → 4 digits  (max 703)  e.g. COR-0001
+    #   community     → 5 digits  (max ~12k) e.g. COM-00001
+    widths = {
+        "province": 2,
+        "district": 3,
+        "corregimiento": 4,
+        "community": 5,
+    }
     prefix = prefixes.get(entity_type, "ENT")
-    return f"{prefix}-{index:04d}"
+    width  = widths.get(entity_type, 4)
+    return f"{prefix}-{index:0{width}d}"
 
 
 # ---------------------------------------------------------------------------
