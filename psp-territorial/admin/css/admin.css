@@ -1,0 +1,138 @@
+/* PSP Territorial – Admin Styles */
+
+/* -------------------------------------------------------------------------
+   Layout
+   ------------------------------------------------------------------------- */
+.psp-territorial-admin .psp-filter-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 16px 0 8px;
+	flex-wrap: wrap;
+}
+
+.psp-territorial-admin .psp-filter-bar select,
+.psp-territorial-admin .psp-filter-bar input[type="search"] {
+	height: 30px;
+	line-height: 28px;
+}
+
+.psp-territorial-admin .psp-count {
+	color: #666;
+	font-style: italic;
+	margin: 4px 0 12px;
+}
+
+/* -------------------------------------------------------------------------
+   Table
+   ------------------------------------------------------------------------- */
+.psp-territorial-admin .psp-table {
+	margin-top: 0;
+}
+
+.psp-territorial-admin .psp-table td,
+.psp-territorial-admin .psp-table th {
+	vertical-align: middle;
+}
+
+/* -------------------------------------------------------------------------
+   Type badges
+   ------------------------------------------------------------------------- */
+.psp-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #fff;
+}
+
+.psp-badge--provincia     { background: #0073aa; }
+.psp-badge--distrito      { background: #006799; }
+.psp-badge--corregimiento { background: #1d8348; }
+.psp-badge--comunidad     { background: #7d3c98; }
+
+/* -------------------------------------------------------------------------
+   Delete button
+   ------------------------------------------------------------------------- */
+.psp-delete-btn {
+	color: #a00 !important;
+	border-color: #a00 !important;
+}
+
+.psp-delete-btn:hover {
+	background: #a00 !important;
+	color: #fff !important;
+}
+
+/* -------------------------------------------------------------------------
+   Settings cards
+   ------------------------------------------------------------------------- */
+.psp-settings-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px 24px;
+	margin-top: 20px;
+	max-width: 800px;
+}
+
+.psp-settings-card h2 {
+	margin-top: 0;
+	border-bottom: 1px solid #eee;
+	padding-bottom: 8px;
+}
+
+.psp-settings-card hr {
+	margin: 20px 0;
+	border-color: #eee;
+}
+
+.psp-settings-card .form-table th {
+	width: 180px;
+}
+
+/* -------------------------------------------------------------------------
+   API endpoint list
+   ------------------------------------------------------------------------- */
+.psp-api-list {
+	list-style: disc;
+	padding-left: 20px;
+}
+
+.psp-api-list li {
+	margin-bottom: 6px;
+}
+
+.psp-api-list code {
+	font-size: 12px;
+}
+
+/* -------------------------------------------------------------------------
+   Credits
+   ------------------------------------------------------------------------- */
+.psp-credits {
+	color: #555;
+}
+
+/* -------------------------------------------------------------------------
+   Danger button
+   ------------------------------------------------------------------------- */
+.psp-danger-btn {
+	color: #a00 !important;
+	border-color: #a00 !important;
+}
+
+.psp-danger-btn:hover {
+	background: #a00 !important;
+	color: #fff !important;
+}
+
+/* -------------------------------------------------------------------------
+   Edit form
+   ------------------------------------------------------------------------- */
+.psp-entity-form .form-table th {
+	width: 180px;
+}
