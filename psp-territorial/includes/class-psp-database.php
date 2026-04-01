@@ -631,7 +631,6 @@ class PSP_Territorial_Database {
 		global $wpdb;
 		$table   = $this->get_table_name();
 		$count   = 0;
-		$batch   = array();
 		$values  = array();
 		$placeholders = array();
 
@@ -642,27 +641,29 @@ class PSP_Territorial_Database {
 			$type      = $data['type'] ?? 'province';
 			$parent_id = ! empty( $data['parent_id'] ) ? absint( $data['parent_id'] ) : null;
 			$level     = absint( $data['level'] ?? 1 );
+			$row_id    = ! empty( $data['id'] ) ? absint( $data['id'] ) : null;
 			$is_active = 1;
 
-			$batch[]        = array( $name, $slug, $code, $type, $parent_id, $level, $is_active );
-			$placeholders[] = '(%s, %s, %s, %s, ' . ( null === $parent_id ? 'NULL' : '%d' ) . ', %d, %d)';
-
-			foreach ( array( $name, $slug, $code, $type ) as $v ) {
-				$values[] = $v;
+			if ( null === $row_id && null === $parent_id ) {
+				$placeholders[] = '(NULL, %s, %s, %s, %s, NULL, %d, %d)';
+				array_push( $values, $name, $slug, $code, $type, $level, $is_active );
+			} elseif ( null === $row_id ) {
+				$placeholders[] = '(NULL, %s, %s, %s, %s, %d, %d, %d)';
+				array_push( $values, $name, $slug, $code, $type, $parent_id, $level, $is_active );
+			} elseif ( null === $parent_id ) {
+				$placeholders[] = '(%d, %s, %s, %s, %s, NULL, %d, %d)';
+				array_push( $values, $row_id, $name, $slug, $code, $type, $level, $is_active );
+			} else {
+				$placeholders[] = '(%d, %s, %s, %s, %s, %d, %d, %d)';
+				array_push( $values, $row_id, $name, $slug, $code, $type, $parent_id, $level, $is_active );
 			}
-			if ( null !== $parent_id ) {
-				$values[] = $parent_id;
-			}
-			$values[] = $level;
-			$values[] = $is_active;
 
 			++$count;
 
 			// Insert in batches of 500.
 			if ( $count % 500 === 0 ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} (name,slug,code,type,parent_id,level,is_active) VALUES " . implode( ',', $placeholders ), $values ) );
-				$batch        = array();
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} (id,name,slug,code,type,parent_id,level,is_active) VALUES " . implode( ',', $placeholders ), $values ) );
 				$values       = array();
 				$placeholders = array();
 			}
@@ -671,7 +672,7 @@ class PSP_Territorial_Database {
 		// Insert remaining.
 		if ( ! empty( $placeholders ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} (name,slug,code,type,parent_id,level,is_active) VALUES " . implode( ',', $placeholders ), $values ) );
+			$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} (id,name,slug,code,type,parent_id,level,is_active) VALUES " . implode( ',', $placeholders ), $values ) );
 		}
 
 		return $count;
