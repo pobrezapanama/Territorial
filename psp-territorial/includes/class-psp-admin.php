@@ -44,7 +44,9 @@ class PSP_Territorial_Admin {
 		add_action( 'admin_post_psp_territorial_delete', array( $this, 'handle_delete' ) );
 		add_action( 'admin_post_psp_territorial_import', array( $this, 'handle_import' ) );
 		add_action( 'admin_post_psp_territorial_export', array( $this, 'handle_export' ) );
+		add_action( 'admin_post_psp_territorial_repair', array( $this, 'handle_repair' ) );
 		add_action( 'admin_init', array( $this, 'flush_rewrite_rules' ) );
+		add_action( 'admin_notices', array( $this, 'data_integrity_notice' ) );
 	}
 
 	/**
@@ -324,13 +326,24 @@ class PSP_Territorial_Admin {
 		$truncate = isset( $_POST['truncate'] ) && '1' === $_POST['truncate'];
 		$source   = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : 'json';
 
-		$importer = new PSP_Territorial_Importer( $this->db );
+		$importer = new PSP_Importer_V2( $this->db );
 
 		if ( 'csv' === $source && ! empty( $_FILES['csv_file']['tmp_name'] ) ) {
-			$tmp = $_FILES['csv_file']['tmp_name'];
-			$result = $importer->import_from_csv( $tmp, $truncate );
+			$old_importer = new PSP_Territorial_Importer( $this->db );
+			$rows         = $old_importer->parse_csv( $_FILES['csv_file']['tmp_name'] );
+			if ( ! empty( $rows ) ) {
+				$result = $importer->import_with_validation( $rows, $truncate );
+			} else {
+				$result = array(
+					'success' => false,
+					'message' => __( 'No se encontraron datos en el CSV.', 'psp-territorial' ),
+				);
+			}
 		} else {
-			$result = $importer->import_from_json( $truncate );
+			$clean_path  = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_clean.json';
+			$legacy_path = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_data.json';
+			$json_path   = file_exists( $clean_path ) ? $clean_path : $legacy_path;
+			$result      = $importer->import_from_file( $json_path, $truncate );
 		}
 
 		PSP_Territorial_Utils::clear_cache();
@@ -421,5 +434,100 @@ class PSP_Territorial_Admin {
 			'total'       => count( $data ),
 			'data'        => $data,
 		), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+	}
+
+	/**
+	 * Show an admin notice when the territory data has orphaned parent_id
+	 * references — a sign that the data was imported with the old broken
+	 * importer that omitted the id column from its batch INSERT statements.
+	 */
+	public function data_integrity_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Only show on PSP Territorial admin pages.
+		$screen = get_current_screen();
+		if ( ! $screen || strpos( $screen->id, 'psp-territorial' ) === false ) {
+			return;
+		}
+
+		// Skip if the notice was already dismissed this session.
+		if ( get_transient( 'psp_territorial_integrity_ok' ) ) {
+			return;
+		}
+
+		if ( ! $this->db->tables_exist() ) {
+			return;
+		}
+
+		if ( ! $this->db->has_orphaned_records() ) {
+			// Mark data as clean so we don't re-check on every page load.
+			set_transient( 'psp_territorial_integrity_ok', 1, HOUR_IN_SECONDS );
+			return;
+		}
+
+		$repair_url = wp_nonce_url(
+			admin_url( 'admin-post.php?action=psp_territorial_repair' ),
+			'psp_territorial_repair'
+		);
+		?>
+		<div class="notice notice-error">
+			<p>
+				<strong><?php esc_html_e( '⚠️ PSP Territorial: datos corruptos detectados', 'psp-territorial' ); ?></strong>
+			</p>
+			<p>
+				<?php
+				esc_html_e(
+					'Se detectaron registros con referencias a territorios padre que no existen. Esto ocurre cuando los datos fueron importados con una versión anterior del plugin que no asignaba los IDs correctamente. Como resultado, los corregimientos y comunidades muestran IDs, códigos, padres e hijos incorrectos en el buscador.',
+					'psp-territorial'
+				);
+				?>
+			</p>
+			<p>
+				<a href="<?php echo esc_url( $repair_url ); ?>" class="button button-primary">
+					<?php esc_html_e( '🔧 Reparar datos ahora (reimportar)', 'psp-territorial' ); ?>
+				</a>
+				&nbsp;
+				<em><?php esc_html_e( 'Nota: esto eliminará los datos actuales y reimportará desde el JSON incluido.', 'psp-territorial' ); ?></em>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Handle the one-click data repair action.
+	 *
+	 * Truncates the territory table and re-imports from the bundled clean JSON
+	 * using the V2 importer so that all IDs and parent_id references are correct.
+	 */
+	public function handle_repair() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sin permiso.', 'psp-territorial' ) );
+		}
+
+		check_admin_referer( 'psp_territorial_repair' );
+
+		$clean_path  = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_clean.json';
+		$legacy_path = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_data.json';
+		$json_path   = file_exists( $clean_path ) ? $clean_path : $legacy_path;
+
+		$importer = new PSP_Importer_V2( $this->db );
+		$result   = $importer->import_from_file( $json_path, true );
+
+		PSP_Territorial_Utils::clear_cache();
+		delete_transient( 'psp_territorial_integrity_ok' );
+
+		$msg     = urlencode( $result['message'] );
+		$redirect = add_query_arg(
+			array(
+				'page'       => 'psp-territorial-import',
+				'import_msg' => $msg,
+				'success'    => $result['success'] ? '1' : '0',
+			),
+			admin_url( 'admin.php' )
+		);
+		wp_safe_redirect( $redirect );
+		exit;
 	}
 }

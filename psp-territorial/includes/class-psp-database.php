@@ -516,6 +516,27 @@ class PSP_Territorial_Database {
 	}
 
 	/**
+	 * Check whether the imported data has orphaned records (parent_id references
+	 * a row that does not exist). This is the hallmark of data imported with the
+	 * old broken importer that omitted the id column from batch INSERT statements.
+	 *
+	 * @return bool True if orphaned records are found.
+	 */
+	public function has_orphaned_records() {
+		global $wpdb;
+		$table = $this->get_table_name();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$table} t
+			 WHERE t.parent_id IS NOT NULL
+			   AND NOT EXISTS (
+			       SELECT 1 FROM {$table} p WHERE p.id = t.parent_id
+			   )"
+		);
+		return $count > 0;
+	}
+
+	/**
 	 * Truncate all territory data.
 	 */
 	public function truncate() {
