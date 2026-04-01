@@ -578,20 +578,23 @@ class Dashboard {
 			) );
 		}
 
-		if ( empty( $_FILES['csv_file']['tmp_name'] ) ) {
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$tmp_name = isset( $_FILES['csv_file']['tmp_name'] ) ? $_FILES['csv_file']['tmp_name'] : '';
+		// phpcs:enable
+
+		if ( empty( $tmp_name ) || ! is_uploaded_file( $tmp_name ) ) {
 			wp_send_json_error( array( 'message' => __( 'No file uploaded.', 'psp-territorial' ) ) );
 		}
 
 		// Validate mime type.
-		$file_info = wp_check_filetype( sanitize_file_name( $_FILES['csv_file']['name'] ), array( 'csv' => 'text/csv' ) );
-		$allowed   = array( 'text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel' );
-		$mime      = isset( $_FILES['csv_file']['type'] ) ? sanitize_mime_type( $_FILES['csv_file']['type'] ) : '';
+		$allowed = array( 'text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel' );
+		$mime    = isset( $_FILES['csv_file']['type'] ) ? sanitize_mime_type( wp_unslash( $_FILES['csv_file']['type'] ) ) : '';
 
 		if ( ! in_array( $mime, $allowed, true ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid file type. Only CSV files are accepted.', 'psp-territorial' ) ) );
 		}
 
-		$tmp_path = sanitize_text_field( $_FILES['csv_file']['tmp_name'] );
+		$tmp_path = $tmp_name;
 
 		$importer = new CsvImporter();
 		$results  = $importer->import_csv( $tmp_path );

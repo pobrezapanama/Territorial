@@ -191,14 +191,24 @@ class CsvImporter {
 		global $wpdb;
 		$table = Database::table();
 
-		$existing_id = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT id FROM {$table} WHERE type = %s AND name = %s AND parent_id <=> %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$type,
-				$name,
-				$parent_id
-			)
-		);
+		if ( null === $parent_id ) {
+			$existing_id = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id FROM {$table} WHERE type = %s AND name = %s AND parent_id IS NULL", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$type,
+					$name
+				)
+			);
+		} else {
+			$existing_id = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id FROM {$table} WHERE type = %s AND name = %s AND parent_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$type,
+					$name,
+					(int) $parent_id
+				)
+			);
+		}
 
 		if ( $existing_id ) {
 			++$results['skipped'];
