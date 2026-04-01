@@ -1,0 +1,337 @@
+/* PSP Territorial Admin Styles */
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+
+.psp-territorial-wrap {
+    max-width: 1200px;
+}
+
+.psp-territorial-wrap h1 {
+    margin-bottom: 16px;
+}
+
+/* Stats bar */
+.psp-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 12px 16px;
+}
+
+.psp-stats span {
+    font-weight: 600;
+    color: #3858e9;
+    font-size: 13px;
+}
+
+.psp-stats span::after {
+    content: '';
+}
+
+/* Toolbar */
+.psp-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.psp-search-box {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Cards (import/export page) */
+.psp-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.psp-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+
+.psp-card h2 {
+    margin-top: 0;
+    font-size: 15px;
+}
+
+/* ─── Tree ─────────────────────────────────────────────────────────────────── */
+
+.psp-tree {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.psp-tree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.psp-tree > div > ul {
+    padding: 4px 0;
+}
+
+.psp-node {
+    border-bottom: 1px solid #f0f0f1;
+    position: relative;
+}
+
+.psp-node:last-child {
+    border-bottom: none;
+}
+
+.psp-node > .psp-node-name,
+.psp-node > .psp-toggle,
+.psp-node > .psp-toggle-placeholder,
+.psp-node > .psp-node-type-badge,
+.psp-node > .psp-node-actions {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+/* Indentation by level */
+.psp-level-province > .psp-node { padding: 8px 12px; }
+.psp-level-district > .psp-node { padding: 7px 12px 7px 36px; background: #fcfcfc; }
+.psp-level-corregimiento > .psp-node { padding: 6px 12px 6px 60px; background: #f9f9f9; }
+.psp-level-community > .psp-node { padding: 5px 12px 5px 84px; background: #f6f6f6; }
+
+/* Toggle arrow */
+.psp-toggle {
+    cursor: pointer;
+    color: #3858e9;
+    margin-right: 6px;
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 0.15s ease;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.psp-toggle-placeholder {
+    width: 20px;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.psp-node.psp-open > .psp-toggle {
+    transform: rotate(90deg);
+}
+
+/* Node name */
+.psp-node-name {
+    font-weight: 500;
+    flex: 1;
+    margin-right: 8px;
+}
+
+.psp-level-province > .psp-node > .psp-node-name { font-size: 14px; }
+.psp-level-district > .psp-node > .psp-node-name { font-size: 13px; }
+.psp-level-corregimiento > .psp-node > .psp-node-name { font-size: 13px; }
+.psp-level-community > .psp-node > .psp-node-name { font-size: 12px; font-weight: 400; }
+
+/* Type badge */
+.psp-node-type-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6c6c6c;
+    background: #f0f0f1;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.psp-node-province > .psp-node-type-badge { background: #dce9ff; color: #3858e9; }
+.psp-node-district > .psp-node-type-badge { background: #d8f5e8; color: #1e7e4c; }
+.psp-node-corregimiento > .psp-node-type-badge { background: #fff4d0; color: #a07400; }
+.psp-node-community > .psp-node-type-badge { background: #f0f0f1; color: #555; }
+
+/* Actions */
+.psp-node-actions {
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.psp-node:hover > .psp-node-actions {
+    opacity: 1;
+}
+
+.psp-node-actions .button-small {
+    padding: 2px 8px;
+    height: auto;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.psp-node-actions .button-link-delete {
+    color: #d63638;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.psp-node-actions .button-link-delete:hover {
+    background: #fce8e8;
+    border-color: #d63638;
+}
+
+/* Children container */
+.psp-children {
+    border-top: 1px solid #f0f0f1;
+}
+
+/* Empty state */
+.psp-empty {
+    padding: 20px;
+    color: #646970;
+    text-align: center;
+}
+
+/* Loading spinner */
+.psp-loading {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #c3c4c7;
+    border-top-color: #3858e9;
+    border-radius: 50%;
+    animation: psp-spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+@keyframes psp-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ─── Search results ────────────────────────────────────────────────────────── */
+
+#psp-search-results {
+    margin-bottom: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 12px;
+}
+
+#psp-search-results h2 {
+    margin-top: 0;
+}
+
+/* ─── Modal ─────────────────────────────────────────────────────────────────── */
+
+.psp-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.5);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.psp-modal {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.25);
+    padding: 24px;
+    width: 540px;
+    max-width: 95vw;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.psp-modal h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+}
+
+.psp-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #646970;
+    padding: 0;
+    line-height: 1;
+}
+
+.psp-modal-close:hover {
+    color: #d63638;
+}
+
+.psp-modal .form-table th {
+    width: 120px;
+    padding: 10px 0;
+}
+
+.psp-modal-footer {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+#psp-form-messages {
+    min-height: 20px;
+    font-size: 13px;
+}
+
+#psp-form-messages.success { color: #1e7e4c; }
+#psp-form-messages.error   { color: #d63638; }
+
+/* ─── Progress bar ──────────────────────────────────────────────────────────── */
+
+.psp-progress-bar {
+    background: #f0f0f1;
+    border-radius: 4px;
+    height: 12px;
+    overflow: hidden;
+    margin: 12px 0 6px;
+}
+
+.psp-progress-bar-inner {
+    height: 100%;
+    background: #3858e9;
+    transition: width 0.3s ease;
+}
+
+/* ─── Notices ───────────────────────────────────────────────────────────────── */
+
+.psp-notice-inline {
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.psp-notice-inline.success { background: #d8f5e8; color: #1e7e4c; border-left: 3px solid #1e7e4c; }
+.psp-notice-inline.error   { background: #fce8e8; color: #d63638; border-left: 3px solid #d63638; }
