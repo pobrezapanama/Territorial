@@ -1,0 +1,169 @@
+/* PSP Territorial Admin CSS */
+
+/* General layout */
+.psp-territorial-wrap {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.psp-territorial-wrap h1 .dashicons {
+	vertical-align: middle;
+	font-size: 1.4em;
+	margin-right: 8px;
+	color: #2271b1;
+}
+
+/* Stats bar */
+.psp-stats-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 16px 0 24px;
+}
+
+.psp-stat-item {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	padding: 12px 20px;
+	min-width: 130px;
+	text-align: center;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.psp-stat-item a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.psp-stat-item:hover,
+.psp-stat-item.active {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.psp-stat-count {
+	display: block;
+	font-size: 2em;
+	font-weight: 700;
+	color: #1d2327;
+	line-height: 1;
+}
+
+.psp-stat-label {
+	display: block;
+	font-size: 0.82em;
+	color: #50575e;
+	margin-top: 4px;
+}
+
+/* Type badges */
+.psp-type-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 0.78em;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	margin-right: 4px;
+}
+
+.psp-type-province      { background: #dff0d8; color: #3c763d; }
+.psp-type-district      { background: #d9edf7; color: #31708f; }
+.psp-type-corregimiento { background: #fcf8e3; color: #8a6d3b; }
+.psp-type-community     { background: #f2dede; color: #a94442; }
+
+/* Status indicators */
+.psp-status-active   { color: #3c763d; }
+.psp-status-inactive { color: #a94442; }
+
+/* Search form */
+.psp-search-form {
+	margin: 12px 0;
+}
+
+.psp-search-form input[type="search"] {
+	width: 280px;
+}
+
+/* Two-column layout */
+.psp-two-columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+	.psp-two-columns {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Card */
+.psp-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	padding: 20px 24px;
+	margin-bottom: 20px;
+}
+
+.psp-card h2 {
+	margin-top: 0;
+	font-size: 1.1em;
+	border-bottom: 1px solid #f0f0f1;
+	padding-bottom: 10px;
+}
+
+/* Form layout */
+.psp-form-layout {
+	display: grid;
+	grid-template-columns: 1fr 300px;
+	gap: 20px;
+	margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+	.psp-form-layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Breadcrumb path */
+.psp-breadcrumb {
+	margin: 0;
+	padding: 0 0 0 16px;
+}
+
+.psp-breadcrumb li {
+	padding: 4px 0;
+}
+
+/* Delete button */
+.button-link-delete {
+	color: #b32d2e !important;
+}
+
+.button-link-delete:hover {
+	color: #b32d2e !important;
+	border-color: #b32d2e !important;
+}
+
+/* Submitbox */
+.submitbox {
+	padding: 10px 0;
+}
+
+#publishing-action {
+	margin-bottom: 10px;
+}
+
+#delete-action {
+	margin-top: 8px;
+}
+
+#delete-action a {
+	color: #b32d2e;
+	font-size: 0.85em;
+}
