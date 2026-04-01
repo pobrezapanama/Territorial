@@ -325,6 +325,16 @@ class PSP_Territorial_CLI {
 
 		$table = $this->db->get_table_name();
 
+		// Fix district parent assignments using the canonical JSON data.
+		$reparented = $this->fix_district_parents( $table );
+		if ( ! $silent || $reparented > 0 ) {
+			if ( $reparented > 0 ) {
+				WP_CLI::log( "  Re-parented {$reparented} district(s) to their correct province." );
+			} else {
+				WP_CLI::log( '  District parent assignments are correct.' );
+			}
+		}
+
 		// Fix orphans.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$orphans = $wpdb->get_results(
@@ -388,6 +398,108 @@ class PSP_Territorial_CLI {
 		if ( ! $silent ) {
 			WP_CLI::success( 'Repair complete.' );
 		}
+	}
+
+	/**
+	 * Fix districts whose parent_id does not point to a province.
+	 *
+	 * Loads the canonical JSON data file to obtain the authoritative
+	 * district → province mapping and updates any district that is currently
+	 * parented to the wrong entity type (or has no parent at all).
+	 *
+	 * @param string $table Territory table name.
+	 * @return int Number of districts corrected.
+	 */
+	private function fix_district_parents( $table ) {
+		global $wpdb;
+
+		$json_file = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_clean.json';
+		if ( ! file_exists( $json_file ) ) {
+			return 0;
+		}
+
+		$json_data = json_decode( file_get_contents( $json_file ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( null === $json_data || empty( $json_data ) ) {
+			return 0;
+		}
+		// Accept both bare arrays and {"data": [...]} wrappers.
+		$json_data = isset( $json_data['data'] ) ? $json_data['data'] : $json_data;
+		if ( ! is_array( $json_data ) || empty( $json_data ) ) {
+			return 0;
+		}
+
+		// Province id (JSON) → province name.
+		$json_provinces = array();
+		foreach ( $json_data as $entry ) {
+			if ( 'province' === $entry['type'] ) {
+				$json_provinces[ $entry['id'] ] = $entry['name'];
+			}
+		}
+
+		// District name/slug → province name (from JSON).
+		$district_to_province = array();
+		foreach ( $json_data as $entry ) {
+			if ( 'district' === $entry['type'] && ! empty( $entry['parent_id'] ) ) {
+				$province_name = isset( $json_provinces[ $entry['parent_id'] ] ) ? $json_provinces[ $entry['parent_id'] ] : null;
+				if ( $province_name ) {
+					$district_to_province[ $entry['name'] ] = $province_name;
+					$district_to_province[ $entry['slug'] ] = $province_name;
+				}
+			}
+		}
+
+		if ( empty( $district_to_province ) ) {
+			return 0;
+		}
+
+		// Province name/slug → actual DB id.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$db_provinces        = $wpdb->get_results( "SELECT id, name, slug FROM {$table} WHERE type = 'province'" );
+		$province_name_to_id = array();
+		foreach ( $db_provinces as $p ) {
+			$province_name_to_id[ $p->name ] = (int) $p->id;
+			$province_name_to_id[ $p->slug ] = (int) $p->id;
+		}
+
+		// Fetch districts that lack a proper province parent.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$bad_districts = $wpdb->get_results(
+			"SELECT d.id, d.name, d.slug
+			 FROM {$table} d
+			 LEFT JOIN {$table} p ON p.id = d.parent_id
+			 WHERE d.type = 'district'
+			   AND ( p.id IS NULL OR p.type <> 'province' )"
+		);
+
+		$fixed = 0;
+		foreach ( $bad_districts as $district ) {
+			if ( isset( $district_to_province[ $district->name ] ) ) {
+				$province_name = $district_to_province[ $district->name ];
+			} elseif ( isset( $district_to_province[ $district->slug ] ) ) {
+				$province_name = $district_to_province[ $district->slug ];
+			} else {
+				continue;
+			}
+
+			$province_id = isset( $province_name_to_id[ $province_name ] ) ? $province_name_to_id[ $province_name ] : null;
+
+			if ( ! $province_id ) {
+				continue;
+			}
+
+			$rows = $wpdb->update(
+				$table,
+				array( 'parent_id' => $province_id ),
+				array( 'id' => (int) $district->id ),
+				array( '%d' ),
+				array( '%d' )
+			);
+			if ( false !== $rows && $rows > 0 ) {
+				++$fixed;
+			}
+		}
+
+		return $fixed;
 	}
 }
 
