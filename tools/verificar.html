@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificador de Territorios – Panamá</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2b6cb0;
+    }
+
+    header p {
+      color: #718096;
+      margin-top: .4rem;
+      font-size: .95rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #4a5568;
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 2px solid #ebf4ff;
+    }
+
+    /* Search row */
+    .search-row {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .search-row input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: .6rem .9rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: .95rem;
+      transition: border-color .2s;
+    }
+
+    .search-row input[type="text"]:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66,153,225,.2);
+    }
+
+    .search-row button {
+      padding: .6rem 1.3rem;
+      background: #3182ce;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .95rem;
+      font-weight: 500;
+      transition: background .2s;
+    }
+
+    .search-row button:hover { background: #2b6cb0; }
+
+    /* Cascading selects */
+    .selects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .field-group label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #718096;
+      margin-bottom: .35rem;
+    }
+
+    .field-group select {
+      width: 100%;
+      padding: .6rem .9rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: .9rem;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .field-group select:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66,153,225,.2);
+    }
+
+    .field-group select:disabled {
+      background: #f7fafc;
+      color: #a0aec0;
+      cursor: default;
+    }
+
+    /* Results */
+    #results-section { display: none; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: .25rem .65rem;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .badge-province    { background: #ebf8ff; color: #2b6cb0; }
+    .badge-district    { background: #f0fff4; color: #276749; }
+    .badge-corregimiento { background: #fffaf0; color: #c05621; }
+    .badge-community   { background: #faf5ff; color: #6b46c1; }
+
+    .result-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .result-code {
+      font-family: monospace;
+      font-size: .9rem;
+      color: #4a5568;
+      background: #edf2f7;
+      padding: .15rem .5rem;
+      border-radius: 4px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-item {
+      background: #f7fafc;
+      border-radius: 6px;
+      padding: .6rem .9rem;
+    }
+
+    .info-item .label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      color: #a0aec0;
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    .info-item .value {
+      font-size: .95rem;
+      font-weight: 500;
+      margin-top: .15rem;
+    }
+
+    /* Breadcrumb hierarchy */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      flex-wrap: wrap;
+      padding: .75rem 1rem;
+      background: #f7fafc;
+      border-radius: 6px;
+      font-size: .88rem;
+    }
+
+    .breadcrumb .crumb {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+
+    .breadcrumb .crumb-name {
+      font-weight: 500;
+      color: #2d3748;
+    }
+
+    .breadcrumb .crumb-current .crumb-name {
+      color: #2b6cb0;
+      font-weight: 700;
+    }
+
+    .breadcrumb .sep {
+      color: #cbd5e0;
+      font-size: .8rem;
+    }
+
+    /* Search results list */
+    .results-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .results-list li {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 1rem;
+      background: #f7fafc;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color .15s, background .15s;
+    }
+
+    .results-list li:hover {
+      background: #ebf8ff;
+      border-color: #bee3f8;
+    }
+
+    .results-list .item-name { font-weight: 500; flex: 1; }
+    .results-list .item-code { font-family: monospace; font-size: .82rem; color: #718096; }
+    .results-list .item-parent { font-size: .8rem; color: #a0aec0; }
+
+    /* Status indicators */
+    .status-ok   { color: #38a169; }
+    .status-inactive { color: #e53e3e; }
+
+    /* Loading / empty states */
+    .state-msg {
+      text-align: center;
+      padding: 1.5rem;
+      color: #a0aec0;
+      font-size: .9rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: .25rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .tab-btn {
+      padding: .5rem 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: .9rem;
+      color: #718096;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      font-weight: 500;
+      transition: color .15s, border-color .15s;
+    }
+
+    .tab-btn.active {
+      color: #2b6cb0;
+      border-bottom-color: #2b6cb0;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .notice {
+      padding: .75rem 1rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      margin-bottom: 1rem;
+    }
+
+    .notice-error { background: #fff5f5; color: #c53030; border-left: 3px solid #fc8181; }
+    .notice-info  { background: #ebf8ff; color: #2b6cb0; border-left: 3px solid #63b3ed; }
+
+    footer {
+      text-align: center;
+      color: #a0aec0;
+      font-size: .8rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🗺️ Verificador de Territorios – Panamá</h1>
+      <p>Consulta y verifica provincias, distritos, corregimientos y comunidades de Panamá.</p>
+    </header>
+
+    <!-- Loading notice -->
+    <div id="loading-notice" class="card">
+      <p class="state-msg">⏳ Cargando datos territoriales…</p>
+    </div>
+
+    <!-- Main form (hidden until data loads) -->
+    <div id="main-form" style="display:none;">
+
+      <!-- Tabs -->
+      <div class="card" style="padding-bottom:0;">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="buscar">🔍 Buscar por nombre / código</button>
+          <button class="tab-btn" data-tab="jerarquia">📂 Navegar por jerarquía</button>
+          <button class="tab-btn" data-tab="verificar">✅ Verificar código</button>
+        </div>
+
+        <!-- Tab: Buscar -->
+        <div id="tab-buscar" class="tab-panel active" style="padding:1rem 0 1.25rem;">
+          <div class="search-row">
+            <input type="text" id="search-input" placeholder="Ej: Bocas del Toro, COR-0012, comunidad Las Palmas…" autocomplete="off" />
+            <button id="btn-search">Buscar</button>
+          </div>
+          <div id="search-type-filter" style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+            <small style="color:#718096;margin-right:.25rem;align-self:center;">Filtrar por tipo:</small>
+            <label><input type="radio" name="stype" value="" checked /> Todos</label>
+            <label><input type="radio" name="stype" value="province" /> Provincia</label>
+            <label><input type="radio" name="stype" value="district" /> Distrito</label>
+            <label><input type="radio" name="stype" value="corregimiento" /> Corregimiento</label>
+            <label><input type="radio" name="stype" value="community" /> Comunidad</label>
+          </div>
+          <div id="search-results" style="margin-top:1rem;"></div>
+        </div>
+
+        <!-- Tab: Jerarquía -->
+        <div id="tab-jerarquia" class="tab-panel" style="padding:1rem 0 1.25rem;">
+          <div class="selects-grid">
+            <div class="field-group">
+              <label>Provincia</label>
+              <select id="sel-province"><option value="">— Seleccionar —</option></select>
+            </div>
+            <div class="field-group">
+              <label>Distrito</label>
+              <select id="sel-district" disabled><option value="">— Seleccionar —</option></select>
+            </div>
+            <div class="field-group">
+              <label>Corregimiento</label>
+              <select id="sel-corregimiento" disabled><option value="">— Seleccionar —</option></select>
+            </div>
+            <div class="field-group">
+              <label>Comunidad</label>
+              <select id="sel-community" disabled><option value="">— Seleccionar —</option></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Verificar código -->
+        <div id="tab-verificar" class="tab-panel" style="padding:1rem 0 1.25rem;">
+          <div class="search-row">
+            <input type="text" id="verify-input" placeholder="Ej: PRV-0001, DIS-0015, COR-0042, COM-00123" autocomplete="off" style="font-family:monospace;"/>
+            <button id="btn-verify">Verificar</button>
+          </div>
+          <div id="verify-results" style="margin-top:1rem;"></div>
+        </div>
+      </div>
+
+      <!-- Detail panel -->
+      <div id="results-section" class="card">
+        <div class="result-header">
+          <span id="detail-badge" class="badge"></span>
+          <span id="detail-name" class="result-name"></span>
+          <span id="detail-code" class="result-code"></span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">ID Interno</div>
+            <div class="value" id="detail-id">—</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Nivel</div>
+            <div class="value" id="detail-level">—</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Slug</div>
+            <div class="value" id="detail-slug" style="font-family:monospace;font-size:.85rem;">—</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Territorio padre</div>
+            <div class="value" id="detail-parent">—</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Hijos directos</div>
+            <div class="value" id="detail-children">—</div>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;margin-bottom:.5rem;">Jerarquía completa</div>
+          <div id="detail-breadcrumb" class="breadcrumb"></div>
+        </div>
+      </div>
+
+    </div><!-- /main-form -->
+
+    <footer>
+      Datos: <strong>PSP Territorial – Panamá</strong> &nbsp;·&nbsp;
+      <span id="footer-count">…</span> registros &nbsp;·&nbsp;
+      Provincias · Distritos · Corregimientos · Comunidades
+    </footer>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ── Constants ─────────────────────────────────────────── */
+    const MAX_SEARCH_RESULTS        = 60;
+    const MAX_VERIFICATION_SUGGESTIONS = 5;
+
+    /* ── State ─────────────────────────────────────────────── */
+    let allData   = [];          // flat array from JSON
+    let byId      = {};          // id → entity
+    let byParent  = {};          // parent_id → [entities]
+
+    const TYPE_LABEL = {
+      province:      'Provincia',
+      district:      'Distrito',
+      corregimiento: 'Corregimiento',
+      community:     'Comunidad',
+    };
+
+    const BADGE_CLASS = {
+      province:      'badge-province',
+      district:      'badge-district',
+      corregimiento: 'badge-corregimiento',
+      community:     'badge-community',
+    };
+
+    const LEVEL_LABEL = ['', 'Nivel 1 – Nacional', 'Nivel 2 – Provincial', 'Nivel 3 – Distrital', 'Nivel 4 – Local'];
+
+    /* ── Data loading ──────────────────────────────────────── */
+    async function loadData() {
+      // Try relative path from /tools/ → ../psp-territorial/assets/data/panama_clean.json
+      const candidates = [
+        '../psp-territorial/assets/data/panama_clean.json',
+        './psp-territorial/assets/data/panama_clean.json',
+        'psp-territorial/assets/data/panama_clean.json',
+      ];
+
+      let json = null;
+      for (const path of candidates) {
+        try {
+          const resp = await fetch(path);
+          if (resp.ok) { json = await resp.json(); break; }
+        } catch (err) { console.warn(`[verificar] No se pudo cargar ${path}:`, err); /* try next */ }
+      }
+
+      if (!json || !json.data) {
+        document.getElementById('loading-notice').innerHTML =
+          '<p class="state-msg notice notice-error">⚠️ No se pudo cargar el archivo <code>panama_clean.json</code>. ' +
+          'Asegúrate de servir este archivo desde un servidor web o abre el repositorio localmente.</p>';
+        return false;
+      }
+
+      allData = json.data;
+      allData.forEach(e => {
+        byId[e.id] = e;
+        const pid = e.parent_id ?? 'root';
+        if (!byParent[pid]) byParent[pid] = [];
+        byParent[pid].push(e);
+      });
+      return true;
+    }
+
+    /* ── Helpers ───────────────────────────────────────────── */
+    function childrenOf(id) { return byParent[id] || []; }
+    function countChildren(id) { return childrenOf(id).length; }
+
+    function getAncestors(entity) {
+      const path = [];
+      let cur = entity;
+      while (cur) {
+        path.unshift(cur);
+        cur = cur.parent_id ? byId[cur.parent_id] : null;
+      }
+      return path;
+    }
+
+    function makeBadge(type) {
+      return `<span class="badge ${BADGE_CLASS[type] || ''}">${TYPE_LABEL[type] || type}</span>`;
+    }
+
+    /* ── Show detail panel ─────────────────────────────────── */
+    function showDetail(entity) {
+      const section = document.getElementById('results-section');
+      section.style.display = 'block';
+
+      document.getElementById('detail-badge').className = `badge ${BADGE_CLASS[entity.type] || ''}`;
+      document.getElementById('detail-badge').textContent = TYPE_LABEL[entity.type] || entity.type;
+      document.getElementById('detail-name').textContent  = entity.name;
+      document.getElementById('detail-code').textContent  = entity.code;
+      document.getElementById('detail-id').textContent    = entity.id;
+      document.getElementById('detail-level').textContent = LEVEL_LABEL[entity.level] || entity.level;
+      document.getElementById('detail-slug').textContent  = entity.slug;
+
+      const parent = entity.parent_id ? byId[entity.parent_id] : null;
+      document.getElementById('detail-parent').innerHTML = parent
+        ? `${makeBadge(parent.type)} ${parent.name} <span class="result-code">${parent.code}</span>`
+        : '<em style="color:#a0aec0">Sin padre (raíz)</em>';
+
+      const children = countChildren(entity.id);
+      document.getElementById('detail-children').textContent = children > 0 ? `${children}` : 'Ninguno';
+
+      // breadcrumb
+      const ancestors = getAncestors(entity);
+      const bc = document.getElementById('detail-breadcrumb');
+      bc.innerHTML = ancestors.map((a, i) => {
+        const isCurrent = i === ancestors.length - 1;
+        return `<span class="crumb ${isCurrent ? 'crumb-current' : ''}">${makeBadge(a.type)} <span class="crumb-name">${a.name}</span></span>` +
+               (isCurrent ? '' : '<span class="sep">›</span>');
+      }).join('');
+
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* ── Tab: Buscar ───────────────────────────────────────── */
+    function doSearch() {
+      const q     = document.getElementById('search-input').value.trim().toLowerCase();
+      const stype = document.querySelector('input[name="stype"]:checked').value;
+      const container = document.getElementById('search-results');
+
+      if (!q) { container.innerHTML = ''; return; }
+
+      let matches = allData.filter(e =>
+        (e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q) || e.slug.includes(q)) &&
+        (!stype || e.type === stype)
+      ).slice(0, MAX_SEARCH_RESULTS);
+
+      if (!matches.length) {
+        container.innerHTML = '<p class="state-msg">No se encontraron resultados para "<strong>' + escHtml(q) + '</strong>".</p>';
+        return;
+      }
+
+      container.innerHTML = `<ul class="results-list">${matches.map(e => {
+        const parent = e.parent_id ? byId[e.parent_id] : null;
+        return `<li data-id="${e.id}">
+          ${makeBadge(e.type)}
+          <span class="item-name">${escHtml(e.name)}</span>
+          <span class="item-code">${escHtml(e.code)}</span>
+          ${parent ? `<span class="item-parent">› ${escHtml(parent.name)}</span>` : ''}
+        </li>`;
+      }).join('')}</ul>`;
+
+      container.querySelectorAll('li').forEach(li => {
+        li.addEventListener('click', () => showDetail(byId[parseInt(li.dataset.id)]));
+      });
+    }
+
+    document.getElementById('btn-search').addEventListener('click', doSearch);
+    document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    /* ── Tab: Jerarquía (cascading selects) ────────────────── */
+    const selProvince      = document.getElementById('sel-province');
+    const selDistrict      = document.getElementById('sel-district');
+    const selCorregimiento = document.getElementById('sel-corregimiento');
+    const selCommunity     = document.getElementById('sel-community');
+
+    function populateSelect(sel, entities) {
+      sel.innerHTML = '<option value="">— Seleccionar —</option>' +
+        entities.sort((a,b) => a.name.localeCompare(b.name))
+                .map(e => `<option value="${e.id}">${escHtml(e.name)} (${escHtml(e.code)})</option>`)
+                .join('');
+    }
+
+    function resetSelect(sel) {
+      sel.innerHTML = '<option value="">— Seleccionar —</option>';
+      sel.disabled = true;
+    }
+
+    function initProvinces() {
+      const provinces = allData.filter(e => e.type === 'province');
+      populateSelect(selProvince, provinces);
+    }
+
+    selProvince.addEventListener('change', () => {
+      resetSelect(selDistrict);
+      resetSelect(selCorregimiento);
+      resetSelect(selCommunity);
+      document.getElementById('results-section').style.display = 'none';
+      if (!selProvince.value) return;
+      const id = parseInt(selProvince.value);
+      const districts = childrenOf(id);
+      if (districts.length) { populateSelect(selDistrict, districts); selDistrict.disabled = false; }
+      showDetail(byId[id]);
+    });
+
+    selDistrict.addEventListener('change', () => {
+      resetSelect(selCorregimiento);
+      resetSelect(selCommunity);
+      if (!selDistrict.value) return;
+      const id = parseInt(selDistrict.value);
+      const corrs = childrenOf(id);
+      if (corrs.length) { populateSelect(selCorregimiento, corrs); selCorregimiento.disabled = false; }
+      showDetail(byId[id]);
+    });
+
+    selCorregimiento.addEventListener('change', () => {
+      resetSelect(selCommunity);
+      if (!selCorregimiento.value) return;
+      const id = parseInt(selCorregimiento.value);
+      const comms = childrenOf(id);
+      if (comms.length) { populateSelect(selCommunity, comms); selCommunity.disabled = false; }
+      showDetail(byId[id]);
+    });
+
+    selCommunity.addEventListener('change', () => {
+      if (!selCommunity.value) return;
+      showDetail(byId[parseInt(selCommunity.value)]);
+    });
+
+    /* ── Tab: Verificar código ─────────────────────────────── */
+    function doVerify() {
+      const raw = document.getElementById('verify-input').value.trim().toUpperCase();
+      const container = document.getElementById('verify-results');
+
+      if (!raw) { container.innerHTML = ''; return; }
+
+      // Normalize: accept formats like PRV-1, PRV-0001, prv01, etc.
+      const normalized = normalizeCode(raw);
+      const found = allData.find(e => e.code === normalized || e.code === raw);
+
+      if (found) {
+        container.innerHTML = `<div class="notice notice-info">
+          ✅ <strong>Código válido:</strong> ${escHtml(found.code)} → ${escHtml(found.name)} (${TYPE_LABEL[found.type] || found.type})
+        </div>`;
+        showDetail(found);
+      } else {
+        // Try partial match on code prefix
+        const prefix = raw.replace(/[-\s]/g, '').slice(0,3).toUpperCase();
+        const suggestions = allData
+          .filter(e => e.code.replace(/-/g,'').startsWith(prefix))
+          .slice(0, MAX_VERIFICATION_SUGGESTIONS);
+
+        let html = `<div class="notice notice-error">❌ Código <strong>${escHtml(raw)}</strong> no encontrado.</div>`;
+        if (suggestions.length) {
+          html += `<p style="margin-top:.5rem;font-size:.88rem;color:#718096;">¿Quisiste decir?</p>
+            <ul class="results-list" style="margin-top:.5rem;">${suggestions.map(e =>
+              `<li data-id="${e.id}">${makeBadge(e.type)}<span class="item-name">${escHtml(e.name)}</span><span class="item-code">${escHtml(e.code)}</span></li>`
+            ).join('')}</ul>`;
+        }
+        container.innerHTML = html;
+        container.querySelectorAll('li').forEach(li =>
+          li.addEventListener('click', () => showDetail(byId[parseInt(li.dataset.id)]))
+        );
+      }
+    }
+
+    function normalizeCode(raw) {
+      // Try to match known prefixes and pad the number
+      const m = raw.match(/^(PRV|DIS|COR|COM)[- ]?(\d+)$/i);
+      if (!m) return raw;
+      const prefix = m[1].toUpperCase();
+      const num    = parseInt(m[2], 10);
+      const pads   = { PRV: 4, DIS: 4, COR: 4, COM: 5 };
+      return `${prefix}-${String(num).padStart(pads[prefix] || 4, '0')}`;
+    }
+
+    document.getElementById('btn-verify').addEventListener('click', doVerify);
+    document.getElementById('verify-input').addEventListener('keydown', e => { if (e.key === 'Enter') doVerify(); });
+
+    /* ── Tabs logic ────────────────────────────────────────── */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    /* ── Escape HTML ───────────────────────────────────────── */
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    /* ── Bootstrap ─────────────────────────────────────────── */
+    loadData().then(ok => {
+      if (!ok) return;
+      document.getElementById('loading-notice').style.display = 'none';
+      document.getElementById('main-form').style.display      = 'block';
+      document.getElementById('footer-count').textContent     = allData.length.toLocaleString('es-PA');
+      initProvinces();
+    });
+
+  })();
+  </script>
+</body>
+</html>
