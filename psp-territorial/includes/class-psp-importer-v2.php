@@ -54,6 +54,65 @@ class PSP_Importer_V2 {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Normalize a territory name.
+	 *
+	 * Applies the following transformations (in order):
+	 *  1. trim() — strips leading / trailing whitespace.
+	 *  2. Collapse internal runs of whitespace to a single space.
+	 *  3. Remove trailing colon (handles "El Teribe:" and "Valle del Riscó :").
+	 *
+	 * @param string $name Raw territory name.
+	 * @return string Normalized name.
+	 */
+	public static function normalize_name( $name ) {
+		$name = trim( (string) $name );
+		$name = preg_replace( '/\s+/u', ' ', $name );
+		$name = preg_replace( '/\s*:\s*$/u', '', $name );
+		return trim( $name );
+	}
+
+	/**
+	 * Import from a hierarchical panama_full_geography.json file.
+	 *
+	 * The file must have the structure:
+	 *   { Province: { District: { Corregimiento: [community, …] } } }
+	 *
+	 * Normalisation rules applied before inserting:
+	 *  - All names are trimmed, whitespace-collapsed, and trailing colons stripped.
+	 *  - Duplicate entries (after normalisation) are merged: their children are
+	 *    united and then deduplicated.
+	 *  - Empty names are skipped.
+	 *
+	 * @param string $json_path Absolute path to the JSON file.
+	 * @param bool   $truncate  Truncate existing data before import.
+	 * @return array Result summary.
+	 */
+	public function import_from_full_geography_file( $json_path, $truncate = false ) {
+		if ( ! file_exists( $json_path ) ) {
+			return $this->result( false, __( 'Archivo JSON no encontrado.', 'psp-territorial' ) );
+		}
+
+		$json = file_get_contents( $json_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$raw  = json_decode( $json, true );
+
+		if ( null === $raw || ! is_array( $raw ) ) {
+			return $this->result( false, __( 'JSON inválido o corrupto.', 'psp-territorial' ) );
+		}
+
+		// If the file is already the flat {"data":[…]} format, delegate.
+		if ( isset( $raw['data'] ) && is_array( $raw['data'] ) ) {
+			return $this->import_with_validation( $raw['data'], $truncate );
+		}
+
+		$data = $this->parse_and_normalize_full_geography( $raw );
+		if ( empty( $data ) ) {
+			return $this->result( false, __( 'No se encontraron datos en el JSON.', 'psp-territorial' ) );
+		}
+
+		return $this->import_with_validation( $data, $truncate );
+	}
+
+	/**
 	 * Parse and validate a JSON file, then import it.
 	 *
 	 * Supports both panama_clean.json and panama_data.json formats
@@ -434,5 +493,152 @@ class PSP_Importer_V2 {
 	 */
 	public function get_log() {
 		return $this->log;
+	}
+
+	/**
+	 * Convert a hierarchical full-geography array into a flat records array.
+	 *
+	 * Applies normalization (trim, whitespace collapse, trailing-colon removal)
+	 * and merges duplicate entries at every level before building the flat list.
+	 *
+	 * ID ranges:
+	 *   province:      1 – 999
+	 *   district:   1001 – 9999
+	 *   corregimiento: 10001 – 99999
+	 *   community:     100001 +
+	 *
+	 * @param array $raw Decoded hierarchical JSON.
+	 * @return array Flat records ready for import_with_validation().
+	 */
+	private function parse_and_normalize_full_geography( array $raw ) {
+		$records = array();
+
+		$province_idx = 0;
+		$district_idx = 0;
+		$corr_idx     = 0;
+		$comm_idx     = 0;
+
+		// ── Merge provinces ───────────────────────────────────────────────────
+		$provinces = array();
+		foreach ( $raw as $raw_prov => $raw_districts ) {
+			$prov_name = self::normalize_name( $raw_prov );
+			if ( empty( $prov_name ) || ! is_array( $raw_districts ) ) {
+				continue;
+			}
+			if ( ! isset( $provinces[ $prov_name ] ) ) {
+				$provinces[ $prov_name ] = array();
+			}
+
+			// ── Merge districts ───────────────────────────────────────────────
+			foreach ( $raw_districts as $raw_dist => $raw_corrs ) {
+				$dist_name = self::normalize_name( $raw_dist );
+				if ( empty( $dist_name ) || ! is_array( $raw_corrs ) ) {
+					continue;
+				}
+				if ( ! isset( $provinces[ $prov_name ][ $dist_name ] ) ) {
+					$provinces[ $prov_name ][ $dist_name ] = array();
+				}
+
+				// ── Merge corregimientos ──────────────────────────────────────
+				foreach ( $raw_corrs as $raw_corr => $raw_comms ) {
+					$corr_name = self::normalize_name( $raw_corr );
+					if ( empty( $corr_name ) || ! is_array( $raw_comms ) ) {
+						continue;
+					}
+					if ( ! isset( $provinces[ $prov_name ][ $dist_name ][ $corr_name ] ) ) {
+						$provinces[ $prov_name ][ $dist_name ][ $corr_name ] = array();
+					}
+
+					// Collect communities (deduplication happens on emit).
+					foreach ( $raw_comms as $raw_comm ) {
+						if ( ! is_string( $raw_comm ) ) {
+							continue;
+						}
+						$comm_name = self::normalize_name( $raw_comm );
+						if ( ! empty( $comm_name ) ) {
+							$provinces[ $prov_name ][ $dist_name ][ $corr_name ][] = $comm_name;
+						}
+					}
+				}
+			}
+		}
+
+		// ── Emit flat records ─────────────────────────────────────────────────
+		foreach ( $provinces as $prov_name => $districts ) {
+			++$province_idx;
+			$province_id = $province_idx; // 1-based, range 1-999.
+
+			$records[] = array(
+				'id'        => $province_id,
+				'name'      => $prov_name,
+				'slug'      => PSP_Territorial_Utils::generate_slug( $prov_name ),
+				'code'      => PSP_Territorial_Utils::generate_code( 'province', $province_idx ),
+				'type'      => 'province',
+				'parent_id' => null,
+				'level'     => 1,
+			);
+
+			foreach ( $districts as $dist_name => $corrs ) {
+				++$district_idx;
+				$district_id = 1000 + $district_idx;
+
+				$records[] = array(
+					'id'        => $district_id,
+					'name'      => $dist_name,
+					'slug'      => PSP_Territorial_Utils::generate_slug( $dist_name ),
+					'code'      => PSP_Territorial_Utils::generate_code( 'district', $district_idx ),
+					'type'      => 'district',
+					'parent_id' => $province_id,
+					'level'     => 2,
+				);
+
+				foreach ( $corrs as $corr_name => $comms ) {
+					++$corr_idx;
+					$corr_id = 10000 + $corr_idx;
+
+					$records[] = array(
+						'id'        => $corr_id,
+						'name'      => $corr_name,
+						'slug'      => PSP_Territorial_Utils::generate_slug( $corr_name ),
+						'code'      => PSP_Territorial_Utils::generate_code( 'corregimiento', $corr_idx ),
+						'type'      => 'corregimiento',
+						'parent_id' => $district_id,
+						'level'     => 3,
+					);
+
+					// Deduplicate communities within this corregimiento.
+					$seen_comms = array();
+					foreach ( $comms as $comm_name ) {
+						if ( isset( $seen_comms[ $comm_name ] ) ) {
+							continue;
+						}
+						$seen_comms[ $comm_name ] = true;
+						++$comm_idx;
+						$records[] = array(
+							'id'        => 100000 + $comm_idx,
+							'name'      => $comm_name,
+							'slug'      => PSP_Territorial_Utils::generate_slug( $comm_name ),
+							'code'      => PSP_Territorial_Utils::generate_code( 'community', $comm_idx ),
+							'type'      => 'community',
+							'parent_id' => $corr_id,
+							'level'     => 4,
+						);
+					}
+				}
+			}
+		}
+
+		$this->log(
+			sprintf(
+				/* translators: 1: provinces, 2: districts, 3: corregimientos, 4: communities */
+				__( 'Parsed full geography: %1$d provinces, %2$d districts, %3$d corregimientos, %4$d communities.', 'psp-territorial' ),
+				$province_idx,
+				$district_idx,
+				$corr_idx,
+				$comm_idx
+			)
+		);
+
+		return $records;
 	}
 }

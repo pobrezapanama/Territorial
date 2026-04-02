@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Available commands:
  *   wp psp territorial clean-json   — Generate panama_clean.json from the CSV
  *   wp psp territorial import-clean — Import the clean JSON (repairs first)
+ *   wp psp territorial import-full  — Import from panama_full_geography.json (normalized)
  *   wp psp territorial verify       — Verify data integrity
  *   wp psp territorial repair       — Repair broken / orphan data
  *   wp psp territorial stats        — Show import statistics
@@ -106,13 +107,19 @@ class PSP_Territorial_CLI {
 	/**
 	 * Import clean JSON data (runs repair first on existing data).
 	 *
+	 * Preferred source order:
+	 *  1. --json=<path> if provided.
+	 *  2. panama_full_geography.clean.json (assets/data/).
+	 *  3. panama_clean.json (assets/data/).
+	 *  4. panama_data.json  (assets/data/, legacy fallback).
+	 *
 	 * ## OPTIONS
 	 *
 	 * [--truncate]
 	 * : Truncate existing data before import.
 	 *
 	 * [--json=<path>]
-	 * : Custom JSON file path (defaults to panama_clean.json, then panama_data.json).
+	 * : Custom JSON file path.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -131,9 +138,18 @@ class PSP_Territorial_CLI {
 		if ( ! empty( $assoc_args['json'] ) ) {
 			$json_path = $assoc_args['json'];
 		} else {
-			$clean_path  = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_clean.json';
-			$legacy_path = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/panama_data.json';
-			$json_path   = file_exists( $clean_path ) ? $clean_path : $legacy_path;
+			$data_dir      = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/';
+			$full_clean    = $data_dir . 'panama_full_geography.clean.json';
+			$clean_path    = $data_dir . 'panama_clean.json';
+			$legacy_path   = $data_dir . 'panama_data.json';
+
+			if ( file_exists( $full_clean ) ) {
+				$json_path = $full_clean;
+			} elseif ( file_exists( $clean_path ) ) {
+				$json_path = $clean_path;
+			} else {
+				$json_path = $legacy_path;
+			}
 		}
 
 		if ( ! file_exists( $json_path ) ) {
@@ -162,6 +178,87 @@ class PSP_Territorial_CLI {
 		// Show any warnings from the log.
 		foreach ( $result['log'] as $entry ) {
 			if ( 'error' === $entry['level'] || 'warning' === $entry['level'] ) {
+				WP_CLI::warning( '[' . $entry['time'] . '] ' . $entry['message'] );
+			}
+		}
+	}
+
+	/**
+	 * Import from panama_full_geography.json with full normalisation.
+	 *
+	 * Loads the hierarchical panama_full_geography.json (province → district →
+	 * corregimiento → [communities]), applies the following normalisation rules
+	 * to every level before inserting:
+	 *
+	 *  - Trim and collapse internal whitespace.
+	 *  - Remove trailing colon suffix (handles "El Teribe:" / "Valle del Riscó :").
+	 *  - Merge duplicate entries (after normalisation) at every level.
+	 *  - Deduplicate communities within each corregimiento.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--truncate]
+	 * : Truncate existing data before import.
+	 *
+	 * [--json=<path>]
+	 * : Path to the full-geography JSON (default: panama_full_geography.json at
+	 *   the repository root, then panama_full_geography.clean.json in assets/data/).
+	 *
+	 * ## EXAMPLES
+	 *
+	 *   wp psp territorial import-full --truncate
+	 *   wp psp territorial import-full --json=/path/to/panama_full_geography.json --truncate
+	 *
+	 * @subcommand import-full
+	 *
+	 * @param array $args       Positional arguments.
+	 * @param array $assoc_args Associative arguments.
+	 */
+	public function import_full( $args, $assoc_args ) {
+		$truncate = WP_CLI\Utils\get_flag_value( $assoc_args, 'truncate', false );
+
+		// Resolve the source JSON path.
+		if ( ! empty( $assoc_args['json'] ) ) {
+			$json_path = $assoc_args['json'];
+		} else {
+			// Prefer the pre-processed clean file; fall back to the raw hierarchical one.
+			$data_dir   = PSP_TERRITORIAL_PLUGIN_DIR . 'assets/data/';
+			$clean_file = $data_dir . 'panama_full_geography.clean.json';
+			// The raw file lives at the repository root (one level above the plugin).
+			$raw_file   = dirname( PSP_TERRITORIAL_PLUGIN_DIR ) . '/panama_full_geography.json';
+
+			if ( file_exists( $clean_file ) ) {
+				$json_path = $clean_file;
+			} elseif ( file_exists( $raw_file ) ) {
+				$json_path = $raw_file;
+			} else {
+				WP_CLI::error(
+					'Could not find panama_full_geography.clean.json or panama_full_geography.json. ' .
+					'Run: python3 psp-territorial/scripts/clean_full_geography.py'
+				);
+			}
+		}
+
+		if ( ! file_exists( $json_path ) ) {
+			WP_CLI::error( 'JSON file not found: ' . $json_path );
+		}
+
+		WP_CLI::log( 'Using JSON: ' . $json_path );
+
+		require_once PSP_TERRITORIAL_PLUGIN_DIR . 'includes/class-psp-importer-v2.php';
+		$importer = new PSP_Importer_V2( $this->db );
+		$result   = $importer->import_from_full_geography_file( $json_path, (bool) $truncate );
+
+		if ( $result['success'] ) {
+			WP_CLI::success( $result['message'] );
+		} else {
+			WP_CLI::error( $result['message'] );
+		}
+
+		foreach ( $result['log'] as $entry ) {
+			if ( 'info' === $entry['level'] || 'success' === $entry['level'] ) {
+				WP_CLI::log( $entry['message'] );
+			} elseif ( 'error' === $entry['level'] || 'warning' === $entry['level'] ) {
 				WP_CLI::warning( '[' . $entry['time'] . '] ' . $entry['message'] );
 			}
 		}
