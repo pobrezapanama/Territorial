@@ -1,0 +1,166 @@
+/* PSP Territorial V2 – Admin Styles */
+
+/* ── Layout ─────────────────────────── */
+.pspv2-wrap {
+	max-width: 1400px;
+}
+
+.pspv2-two-col {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+	margin-top: 20px;
+}
+
+@media (max-width: 960px) {
+	.pspv2-two-col {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Card ────────────────────────────── */
+.pspv2-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px 24px;
+	box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.pspv2-card h2 {
+	margin-top: 0;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+/* ── Stats bar ───────────────────────── */
+.pspv2-stats-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 16px 0;
+}
+
+.pspv2-stat-item {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 10px 18px;
+	text-align: center;
+	min-width: 110px;
+	transition: border-color .15s;
+}
+
+.pspv2-stat-item a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.pspv2-stat-item:hover,
+.pspv2-stat-item.active {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.pspv2-stat-count {
+	display: block;
+	font-size: 1.7em;
+	font-weight: 700;
+	color: #1d2327;
+	line-height: 1;
+}
+
+.pspv2-stat-label {
+	display: block;
+	font-size: .8em;
+	color: #646970;
+	margin-top: 4px;
+}
+
+/* ── Table ───────────────────────────── */
+.pspv2-table {
+	margin-top: 10px;
+}
+
+.pspv2-table .column-id    { width: 80px; }
+.pspv2-table .column-type  { width: 130px; }
+.pspv2-table .column-code  { width: 120px; }
+.pspv2-table .column-level { width: 60px; text-align: center; }
+.pspv2-table .column-status { width: 110px; }
+
+.pspv2-row-invalid td {
+	background: #fff8e1 !important;
+}
+
+/* ── Type badges ─────────────────────── */
+.pspv2-type-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: .8em;
+	font-weight: 600;
+}
+
+.pspv2-type-province      { background: #d1ecf1; color: #0c5460; }
+.pspv2-type-district      { background: #d4edda; color: #155724; }
+.pspv2-type-corregimiento { background: #fff3cd; color: #856404; }
+.pspv2-type-community     { background: #f8d7da; color: #721c24; }
+
+/* ── Status badges ───────────────────── */
+.pspv2-badge-active   { color: #135e25; font-weight: 600; }
+.pspv2-badge-inactive { color: #8a2424; font-weight: 600; }
+.pspv2-badge-warning  { color: #856404; font-size: .85em; }
+
+/* ── Stats table ─────────────────────── */
+.pspv2-stats-table td,
+.pspv2-stats-table th {
+	padding: 8px 12px;
+}
+
+.pspv2-total-row {
+	border-top: 2px solid #c3c4c7;
+}
+
+/* ── Results info ────────────────────── */
+.pspv2-results-info {
+	color: #646970;
+	font-size: .9em;
+	margin: 8px 0;
+}
+
+/* ── Import options ──────────────────── */
+.pspv2-import-options {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px 16px;
+	margin: 12px 0;
+}
+
+/* ── API list ────────────────────────── */
+.pspv2-api-list {
+	list-style: none;
+	padding-left: 0;
+	margin: 8px 0;
+}
+
+.pspv2-api-list li {
+	padding: 4px 0;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: .9em;
+}
+
+.pspv2-api-list code {
+	font-size: .9em;
+}
+
+/* ── CLI box ─────────────────────────── */
+.pspv2-cli-box {
+	background: #1e2128;
+	color: #c9d1d9;
+	padding: 12px 16px;
+	border-radius: 4px;
+	font-size: .9em;
+	line-height: 1.6;
+	overflow-x: auto;
+}
