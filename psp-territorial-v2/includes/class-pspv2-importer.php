@@ -166,26 +166,46 @@ class PSPV2_Importer {
 			return;
 		}
 
-		// Validate parent_id.
-		if ( null !== $parent_id ) {
+		// Strict parent validation.
+		$expected_parent_type = PSPV2_Database::PARENT_TYPE[ $type ] ?? null;
+
+		// Provinces MUST have no parent.
+		if ( 'province' === $type ) {
+			if ( null !== $parent_id ) {
+				$this->log( 'error', "id={$id} (province) must have parent_id=NULL — skipping." );
+				$this->errors++;
+				return;
+			}
+		} else {
+			// Non-provinces MUST have a parent.
+			if ( null === $parent_id ) {
+				$this->log( 'error', "id={$id} ({$type}) must have a parent_id — skipping." );
+				$this->errors++;
+				return;
+			}
+
+			// Parent must exist in the dataset.
 			if ( ! isset( $id_type_map[ $parent_id ] ) ) {
-				$this->log( 'warning', "id={$id} ({$type}) has parent_id={$parent_id} not found in data — setting parent_id=NULL." );
-				$parent_id = null;
-			} else {
-				$expected_parent_type = PSPV2_Database::PARENT_TYPE[ $type ] ?? null;
-				if ( $expected_parent_type && $id_type_map[ $parent_id ] !== $expected_parent_type ) {
-					$this->log(
-						'warning',
-						sprintf(
-							"id=%d (%s) has parent id=%d of type '%s' (expected '%s') — inserting anyway.",
-							$id,
-							$type,
-							$parent_id,
-							$id_type_map[ $parent_id ],
-							$expected_parent_type
-						)
-					);
-				}
+				$this->log( 'error', "id={$id} ({$type}) has parent_id={$parent_id} not found in data — skipping." );
+				$this->errors++;
+				return;
+			}
+
+			// Parent must be of the expected type.
+			if ( $expected_parent_type && $id_type_map[ $parent_id ] !== $expected_parent_type ) {
+				$this->log(
+					'error',
+					sprintf(
+						"id=%d (%s) has parent id=%d of type '%s' (expected '%s') — skipping.",
+						$id,
+						$type,
+						$parent_id,
+						$id_type_map[ $parent_id ],
+						$expected_parent_type
+					)
+				);
+				$this->errors++;
+				return;
 			}
 		}
 
