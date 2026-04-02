@@ -1,0 +1,320 @@
+# Copyright (C) 2024 PSP – Panamá
+# This file is distributed under the same license as the PSP Territorial plugin.
+# PSP – Panamá <https://github.com/pobrezapanama>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PSP Territorial 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/pobrezapanama/Territorial/issues\n"
+"POT-Creation-Date: 2024-01-01 00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: PSP Territorial\n"
+"X-Domain: psp-territorial\n"
+
+#: includes/class-psp-api.php
+msgid "Provincia no encontrada."
+msgstr ""
+
+#: includes/class-psp-api.php
+msgid "Distrito no encontrado."
+msgstr ""
+
+#: includes/class-psp-api.php
+msgid "Corregimiento no encontrado."
+msgstr ""
+
+#: includes/class-psp-api.php
+msgid "Comunidad no encontrada."
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "PSP Territorial"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Territorial"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Entidades"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Agregar / Editar"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Agregar nuevo"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Ajustes"
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "Permiso denegado."
+msgstr ""
+
+#: includes/class-psp-admin.php
+msgid "¿Eliminar \"%s\" y todos sus hijos? Esta acción no se puede deshacer."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Agregar nuevo"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Entidad creada exitosamente."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Entidad actualizada."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Entidad eliminada."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Ocurrió un error. Intente de nuevo."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Todos los tipos"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Provincias"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Distritos"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Corregimientos"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Comunidades"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Buscar..."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Filtrar"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Limpiar"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Total: %d entidades"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "ID"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Nombre"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Tipo"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "ID Padre"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Acciones"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "No se encontraron entidades."
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Editar"
+msgstr ""
+
+#: admin/views/provinces-list.php
+msgid "Eliminar"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Editar entidad"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Agregar nueva entidad"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Entidad no encontrada."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Verificación de seguridad fallida."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "El nombre es obligatorio."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Tipo de entidad inválido."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Debe seleccionar un padre para este tipo de entidad."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Volver al listado"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Nombre"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Tipo"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Provincia"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Distrito"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Corregimiento"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Comunidad"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "No se puede cambiar el tipo después de creado."
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Entidad padre"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "— Seleccionar —"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Actualizar"
+msgstr ""
+
+#: admin/views/edit-entity.php
+msgid "Crear"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "PSP Territorial – Ajustes"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Reimportación completada. %d entidades importadas."
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Estado actual"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Versión del plugin"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Versión de la BD"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Total de entidades"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Provincias"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Distritos"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Corregimientos"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Comunidades"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Acciones de datos"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Reimportar datos"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Borra todos los datos actuales y vuelve a importar desde el archivo JSON original. Esta acción no se puede deshacer."
+msgstr ""
+
+#: admin/views/settings.php
+msgid "¿Está seguro? Se eliminarán todos los datos actuales."
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Exportar datos a JSON"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Descarga todos los datos territoriales en formato JSON estructurado jerárquicamente."
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Exportar JSON"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "REST API"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Endpoints disponibles:"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Créditos"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "División Político Administrativa de la República de Panamá"
+msgstr ""
+
+#: admin/views/settings.php
+msgid "Desarrollado para PSP – Panamá"
+msgstr ""
