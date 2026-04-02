@@ -49,6 +49,12 @@ class PSP_Territorial_Utils {
 	/**
 	 * Generate a unique code for a territory.
 	 *
+	 * Each type uses a fixed digit width that accommodates Panama's full dataset:
+	 *   province      → 2 digits  (max  13)  e.g. PRV-01
+	 *   district      → 3 digits  (max  82)  e.g. DIS-001
+	 *   corregimiento → 4 digits  (max 703)  e.g. COR-0001
+	 *   community     → 5 digits  (max ~12k) e.g. COM-00001
+	 *
 	 * @param string $type  Territory type.
 	 * @param int    $index Sequential index.
 	 * @return string
@@ -60,8 +66,15 @@ class PSP_Territorial_Utils {
 			'corregimiento' => 'COR',
 			'community'     => 'COM',
 		);
+		$widths = array(
+			'province'      => 2,
+			'district'      => 3,
+			'corregimiento' => 4,
+			'community'     => 5,
+		);
 		$prefix = isset( $prefixes[ $type ] ) ? $prefixes[ $type ] : 'ENT';
-		return $prefix . '-' . str_pad( $index, 4, '0', STR_PAD_LEFT );
+		$width  = isset( $widths[ $type ] ) ? $widths[ $type ] : 4;
+		return $prefix . '-' . str_pad( $index, $width, '0', STR_PAD_LEFT );
 	}
 
 	/**
