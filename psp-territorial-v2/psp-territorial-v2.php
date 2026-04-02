@@ -46,7 +46,7 @@ function pspv2_activate() {
 		$importer->import_from_file( $data_file, false );
 	}
 
-	add_option( 'pspv2_flush_rewrite', true );
+	update_option( 'pspv2_flush_rewrite', true );
 }
 register_activation_hook( __FILE__, 'pspv2_activate' );
 

@@ -225,13 +225,64 @@ class PSPV2_Database {
 	/**
 	 * Count items matching given args (ignoring limit/offset).
 	 *
-	 * @param array $args Same as get_items().
+	 * Uses a SQL COUNT query rather than fetching all rows.
+	 *
+	 * @param array $args Same as get_items() (limit/offset are ignored).
 	 * @return int
 	 */
 	public function count_filtered( array $args = array() ) {
-		$args['limit']  = PHP_INT_MAX;
-		$args['offset'] = 0;
-		return count( $this->get_items( $args ) );
+		global $wpdb;
+		$table = $this->get_table_name();
+
+		$defaults = array(
+			'type'      => '',
+			'parent_id' => '',
+			'level'     => '',
+			'search'    => '',
+			'is_active' => '',
+		);
+		$args = wp_parse_args( $args, $defaults );
+
+		$conditions = array( '1=1' );
+		$bindings   = array();
+
+		if ( ! empty( $args['type'] ) ) {
+			$conditions[] = 'type = %s';
+			$bindings[]   = $args['type'];
+		}
+		if ( '' !== $args['parent_id'] && null !== $args['parent_id'] ) {
+			if ( 'null' === $args['parent_id'] ) {
+				$conditions[] = 'parent_id IS NULL';
+			} else {
+				$conditions[] = 'parent_id = %d';
+				$bindings[]   = (int) $args['parent_id'];
+			}
+		}
+		if ( ! empty( $args['level'] ) ) {
+			$conditions[] = 'level = %d';
+			$bindings[]   = (int) $args['level'];
+		}
+		if ( ! empty( $args['search'] ) ) {
+			$conditions[] = '(name LIKE %s OR slug LIKE %s OR code LIKE %s)';
+			$like         = '%' . $wpdb->esc_like( $args['search'] ) . '%';
+			$bindings[]   = $like;
+			$bindings[]   = $like;
+			$bindings[]   = $like;
+		}
+		if ( '' !== $args['is_active'] ) {
+			$conditions[] = 'is_active = %d';
+			$bindings[]   = (int) $args['is_active'];
+		}
+
+		$where = 'WHERE ' . implode( ' AND ', $conditions );
+		$sql   = "SELECT COUNT(*) FROM {$table} {$where}";
+
+		if ( ! empty( $bindings ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			return (int) $wpdb->get_var( $wpdb->prepare( $sql, $bindings ) );
+		}
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return (int) $wpdb->get_var( $sql );
 	}
 
 	/**
